@@ -8,9 +8,6 @@ REVIEWS_CSV = "reviews.csv"
 
 REVIEW_FIELDS = ["FMID", "FirstName", "LastName", "Rating", "ReviewText", "Timestamp"]
 
-# Столбцы Export.csv, отвечающие за способы оплаты и ассортимент товаров
-# (используются только для более информативного вывода деталей рынка -
-#  список столбцов файла программа определяет автоматически при чтении).
 PAYMENT_FIELDS = ["Credit", "WIC", "WICcash", "SFMNP", "SNAP"]
 PRODUCT_FIELDS = [
     "Organic", "Bakedgoods", "Cheese", "Crafts", "Flowers", "Eggs", "Seafood",
@@ -21,23 +18,10 @@ PRODUCT_FIELDS = [
 
 EARTH_RADIUS_MILES = 3958.8
 
-
-# ===================================================================
 # 1. ЧТЕНИЕ И ЗАПИСЬ CSV-ФАЙЛОВ
-# ===================================================================
 
 def load_markets(path=MARKETS_CSV):
-    """Загружает список рынков из CSV-файла в список словарей.
-
-    Состав столбцов не задаётся жёстко в коде - программа берёт его
-    прямо из заголовка файла, поэтому корректно работает и с полным
-    набором столбцов реального файла USDA (59 колонок), и с более
-    простыми файлами, где столбцов меньше.
-
-    Текстовые поля очищаются от лишних пробелов по краям.
-    Поля x и y (координаты) преобразуются в float, а если они пустые
-    или содержат некорректное значение - в None.
-    """
+ 
     markets = []
     with open(path, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
@@ -51,8 +35,7 @@ def load_markets(path=MARKETS_CSV):
 
 
 def _to_float_or_none(value):
-    """Пробует превратить строку в float. Если это невозможно (значение
-    пустое или некорректное) - возвращает None вместо ошибки."""
+   
     if not value:
         return None
     try:
@@ -62,9 +45,7 @@ def _to_float_or_none(value):
 
 
 def save_markets(markets, path=MARKETS_CSV):
-    """Сохраняет список рынков в CSV-файл, используя тот же набор
-    столбцов, что был у первой записи в списке (то есть ровно те
-    столбцы, что были прочитаны из исходного Export.csv)."""
+  
     if not markets:
         return
     fieldnames = list(markets[0].keys())
@@ -76,7 +57,7 @@ def save_markets(markets, path=MARKETS_CSV):
 
 
 def load_reviews(path=REVIEWS_CSV):
-    """Загружает список рецензий из CSV-файла. Если файла ещё нет - возвращает пустой список."""
+   
     if not os.path.exists(path):
         return []
     reviews = []
@@ -90,21 +71,17 @@ def load_reviews(path=REVIEWS_CSV):
 
 
 def save_reviews(reviews, path=REVIEWS_CSV):
-    """Сохраняет список рецензий в CSV-файл."""
+   
     with open(path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=REVIEW_FIELDS)
         writer.writeheader()
         for r in reviews:
             writer.writerow({key: r.get(key, "") for key in REVIEW_FIELDS})
 
-
-# ===================================================================
 # 2. РАССТОЯНИЕ МЕЖДУ ТОЧКАМИ (формула гаверсинуса)
-# ===================================================================
 
 def haversine_miles(lat1, lon1, lat2, lon2):
-    """Возвращает расстояние между двумя точками на Земле в милях
-    по их широте и долготе."""
+   
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
     dphi = math.radians(lat2 - lat1)
     dlambda = math.radians(lon2 - lon1)
@@ -112,13 +89,10 @@ def haversine_miles(lat1, lon1, lat2, lon2):
          + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2)
     return 2 * EARTH_RADIUS_MILES * math.asin(math.sqrt(a))
 
-
-# ===================================================================
 # 3. ПОИСК И ФИЛЬТРАЦИЯ
-# ===================================================================
 
 def get_market_by_fmid(markets, fmid):
-    """Находит рынок по его FMID. Возвращает словарь или None."""
+   
     for m in markets:
         if m["FMID"] == fmid:
             return m
@@ -126,8 +100,7 @@ def get_market_by_fmid(markets, fmid):
 
 
 def search_by_city_state(markets, city=None, state=None):
-    """Ищет рынки по (частичному) совпадению города и/или штата.
-    Если параметр не задан (None), он не учитывается при поиске."""
+  
     def matches(m):
         ok = True
         if city:
@@ -140,8 +113,7 @@ def search_by_city_state(markets, city=None, state=None):
 
 
 def find_center_by_zip(markets, zip_code):
-    """Возвращает координаты (широта, долгота) первого найденного рынка
-    с указанным почтовым индексом, либо None, если индекс не найден."""
+    
     for m in markets:
         if m.get("zip") == zip_code and m["x"] is not None and m["y"] is not None:
             return m["y"], m["x"]
@@ -149,14 +121,7 @@ def find_center_by_zip(markets, zip_code):
 
 
 def search_by_zip_radius(markets, zip_code, radius_miles):
-    """Ищет рынки в заданном радиусе (в милях) от почтового индекса.
-    Индекс определяется по данным о рынках (по нему находится центр поиска).
-
-    Возвращает:
-        None                    - если индекс не найден в данных;
-        список кортежей (m, d)  - рынки и расстояние до них в милях,
-                                   отсортированный по возрастанию расстояния.
-    """
+   
     center = find_center_by_zip(markets, zip_code)
     if center is None:
         return None
@@ -173,18 +138,15 @@ def search_by_zip_radius(markets, zip_code, radius_miles):
     result.sort(key=lambda pair: pair[1])
     return result
 
-
-# ===================================================================
 # 4. РЕЦЕНЗИИ И РЕЙТИНГИ
-# ===================================================================
 
 def get_reviews_for_market(reviews, fmid):
-    """Возвращает все рецензии на конкретный рынок."""
+    
     return [r for r in reviews if r["FMID"] == fmid]
 
 
 def average_rating(reviews, fmid):
-    """Возвращает средний рейтинг рынка (float) или None, если рецензий нет."""
+    
     market_reviews = get_reviews_for_market(reviews, fmid)
     if not market_reviews:
         return None
@@ -192,8 +154,7 @@ def average_rating(reviews, fmid):
 
 
 def add_review(reviews, fmid, first_name, last_name, rating, text):
-    """Добавляет новую рецензию. Возвращает НОВЫЙ список рецензий
-    (исходный список reviews не изменяется - функциональный подход)."""
+ 
     new_review = {
         "FMID": fmid,
         "FirstName": first_name,
@@ -204,19 +165,10 @@ def add_review(reviews, fmid, first_name, last_name, rating, text):
     }
     return reviews + [new_review]
 
-
-# ===================================================================
 # 5. СОРТИРОВКА И УДАЛЕНИЕ
-# ===================================================================
 
 def sort_markets(markets, reviews, key="name", reverse=False, ref_point=None):
-    """Сортирует список рынков по одному из критериев:
-        'name'     - по названию рынка (по умолчанию);
-        'rating'   - по среднему рейтингу (рынки без рецензий - в конце);
-        'city'     - по городу;
-        'state'    - по штату;
-        'distance' - по расстоянию до точки ref_point=(широта, долгота).
-    """
+   
     def sort_key(m):
         if key == "rating":
             r = average_rating(reviews, m["FMID"])
@@ -237,19 +189,15 @@ def sort_markets(markets, reviews, key="name", reverse=False, ref_point=None):
 
 
 def delete_market(markets, reviews, fmid):
-    """Удаляет рынок и все его рецензии. Возвращает НОВУЮ пару
-    (markets, reviews) без удалённых записей."""
+   
     new_markets = [m for m in markets if m["FMID"] != fmid]
     new_reviews = [r for r in reviews if r["FMID"] != fmid]
     return new_markets, new_reviews
 
-
-# ===================================================================
 # 6. ВЫВОД ДАННЫХ И ПАГИНАЦИЯ (разбивка по страницам)
-# ===================================================================
 
 def paginate(items, page_size=10):
-    """Разбивает список на страницы фиксированного размера."""
+  
     if page_size <= 0:
         page_size = 5
     return [items[i:i + page_size] for i in range(0, len(items), page_size)]
@@ -283,7 +231,6 @@ def print_market_full(m, reviews):
     else:
         print("Координаты: неизвестны")
 
-    # расписание (до 4 сезонов) - выводим только те, что заполнены
     schedule_lines = []
     for i in range(1, 5):
         season_date = m.get(f"Season{i}Date")
@@ -314,8 +261,7 @@ def print_market_full(m, reviews):
 
 
 def show_markets_paginated(markets, reviews, page_size=10):
-    """Выводит список рынков постранично. Пользователь листает страницы
-    командами N (следующая) / P (предыдущая) / Enter (выход)."""
+    
     if not markets:
         print("Рынки не найдены.")
         return
@@ -342,14 +288,10 @@ def show_markets_paginated(markets, reviews, page_size=10):
         else:
             print("Неизвестная команда.")
 
-
-# ===================================================================
 # 7. ГЛАВНОЕ МЕНЮ (REPL)
-# ===================================================================
 
 def read_int_in_range(prompt, low, high):
-    """Запрашивает у пользователя целое число в диапазоне [low, high],
-    повторяя вопрос, пока не будет введено корректное значение."""
+
     while True:
         raw = input(prompt).strip()
         if raw.isdigit() and low <= int(raw) <= high:
@@ -388,7 +330,6 @@ def action_search_zip(markets, reviews):
     for m, distance in result:
         print_market_short(m, reviews)
         print(f"    расстояние: {distance:.1f} миль")
-
 
 def action_view_details(markets, reviews):
     fmid = input("Введите FMID рынка: ").strip()
@@ -500,16 +441,10 @@ def main_menu():
         else:
             print("Неизвестный пункт меню, попробуйте ещё раз.")
 
-
-# ===================================================================
 # 8. ПРОСТЫЕ ТЕСТЫ (запускаются в блоке if __name__ == '__main__')
-# ===================================================================
 
 def _run_self_tests():
-    """Небольшой набор проверок основных функций приложения.
-    Это простейшая форма модульного тестирования, реализованная
-    через блок if __name__ == '__main__', как требуется в задании."""
-
+  
     sample_markets = [
         {"FMID": "1", "MarketName": "Test Market", "Website": "", "street": "",
          "city": "Springfield", "County": "", "State": "IL", "zip": "62701",
