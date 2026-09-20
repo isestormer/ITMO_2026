@@ -1,0 +1,9 @@
+Приложение "Морской бой" использует только стандартную библиотеку Python
+
+(tkinter, json, os, random, datetime) — сторонние пакеты для запуска не требуются.
+
+PyInstaller требуется только на этапе сборки .exe
+
+(см. build_windows.bat / build_linux.sh) и не входит в поставку приложения.
+
+pyinstaller>=6.0
