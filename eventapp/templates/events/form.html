@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Редактирование' if event else 'Новое мероприятие' }}{% endblock %}
+{% block content %}
+<h2 class="mb-4">{{ 'Редактирование мероприятия' if event else 'Новое мероприятие' }}</h2>
+<form method="post" class="col-md-8">
+    <div class="mb-3">
+        <label class="form-label">Название</label>
+        <input type="text" name="title" class="form-control" value="{{ event['title'] if event else '' }}" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Описание</label>
+        <textarea name="description" class="form-control" rows="4">{{ event['description'] if event else '' }}</textarea>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Категория</label>
+            <select name="category" class="form-select">
+                {% for c in categories %}
+                    <option value="{{ c }}" {% if event and event['category']==c %}selected{% endif %}>{{ c }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Место проведения</label>
+            <input type="text" name="location" class="form-control" value="{{ event['location'] if event else '' }}" required>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Дата и время начала</label>
+            <input type="text" name="start_datetime" class="form-control" placeholder="2026-09-15 18:00"
+                   value="{{ event['start_datetime'] if event else '' }}" required>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Дата и время окончания (необязательно)</label>
+            <input type="text" name="end_datetime" class="form-control" placeholder="2026-09-15 21:00"
+                   value="{{ event['end_datetime'] if event and event['end_datetime'] else '' }}">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Вместимость (мест)</label>
+            <input type="number" min="1" name="capacity" class="form-control" value="{{ event['capacity'] if event else 30 }}" required>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Цена участия, ₽ (0 — бесплатно)</label>
+            <input type="number" min="0" step="0.01" name="price" class="form-control" value="{{ event['price'] if event else 0 }}" required>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Статус</label>
+            <select name="status" class="form-select">
+                {% for s, label in [('draft','Черновик'), ('published','Опубликовано'), ('cancelled','Отменено'), ('completed','Завершено')] %}
+                    <option value="{{ s }}" {% if event and event['status']==s or (not event and s=='published') %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-brand">Сохранить</button>
+    <a href="{{ url_for('events.my_events') }}" class="btn btn-outline-secondary">Отмена</a>
+</form>
+{% endblock %}

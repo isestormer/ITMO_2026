@@ -1,0 +1,50 @@
+digraph StateDiagrams {
+    fontname="Arial";
+    node [fontname="Arial", fontsize=10];
+    edge [fontname="Arial", fontsize=9];
+    rankdir=LR;
+
+    subgraph cluster_event {
+        label="Жизненный цикл мероприятия (Event.status)";
+        style=rounded; color="#2f5d8a"; fontsize=11;
+        e_start [shape=point];
+        e_draft [shape=ellipse, label="draft\n(черновик)"];
+        e_published [shape=ellipse, label="published\n(опубликовано)"];
+        e_cancelled [shape=ellipse, label="cancelled\n(отменено)"];
+        e_completed [shape=ellipse, label="completed\n(завершено)"];
+        e_start -> e_draft;
+        e_draft -> e_published [label="публикация"];
+        e_start -> e_published [label="создание сразу\nопубликованным"];
+        e_published -> e_cancelled [label="отмена\nорганизатором"];
+        e_published -> e_completed [label="дата мероприятия\nпрошла"];
+    }
+
+    subgraph cluster_registration {
+        label="Жизненный цикл регистрации (Registration.status)";
+        style=rounded; color="#2f5d8a"; fontsize=11;
+        r_start [shape=point];
+        r_pending [shape=ellipse, label="pending\n(ожидает оплаты)"];
+        r_confirmed [shape=ellipse, label="confirmed\n(подтверждена)"];
+        r_cancelled [shape=ellipse, label="cancelled\n(отменена)"];
+        r_start -> r_pending [label="регистрация\nна платное"];
+        r_start -> r_confirmed [label="регистрация\nна бесплатное"];
+        r_pending -> r_confirmed [label="успешная оплата"];
+        r_pending -> r_cancelled [label="отмена участником"];
+        r_confirmed -> r_cancelled [label="отмена участником\nили организатором"];
+    }
+
+    subgraph cluster_payment {
+        label="Жизненный цикл оплаты (Payment.status)";
+        style=rounded; color="#2f5d8a"; fontsize=11;
+        p_start [shape=point];
+        p_pending [shape=ellipse, label="pending\n(создан счёт)"];
+        p_paid [shape=ellipse, label="paid\n(оплачен)"];
+        p_failed [shape=ellipse, label="failed\n(отклонён)"];
+        p_refunded [shape=ellipse, label="refunded\n(возвращён)"];
+        p_start -> p_pending;
+        p_pending -> p_paid [label="успешная обработка\nшлюзом"];
+        p_pending -> p_failed [label="отказ шлюза"];
+        p_failed -> p_pending [label="повторная попытка"];
+        p_paid -> p_refunded [label="отмена регистрации\nпосле оплаты"];
+    }
+}

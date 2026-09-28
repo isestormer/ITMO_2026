@@ -1,0 +1,62 @@
+digraph UseCase {
+    rankdir=LR;
+    fontname="Arial";
+    node [fontname="Arial", fontsize=11];
+    edge [fontname="Arial", fontsize=10];
+
+    subgraph cluster_system {
+        label="Система создания и управления мероприятиями";
+        style=rounded;
+        color="#2f5d8a";
+        fontsize=13;
+
+        uc_register_account [shape=ellipse, label="Зарегистрироваться\nв системе"];
+        uc_login            [shape=ellipse, label="Войти в систему"];
+        uc_browse            [shape=ellipse, label="Просмотреть каталог\nмероприятий"];
+        uc_search             [shape=ellipse, label="Искать/фильтровать\nмероприятия"];
+        uc_view_detail       [shape=ellipse, label="Просмотреть карточку\nмероприятия"];
+
+        uc_create_event      [shape=ellipse, label="Создать мероприятие"];
+        uc_edit_event        [shape=ellipse, label="Редактировать\nмероприятие"];
+        uc_cancel_event       [shape=ellipse, label="Отменить мероприятие"];
+        uc_view_participants [shape=ellipse, label="Просмотреть список\nучастников"];
+        uc_view_reports       [shape=ellipse, label="Просмотреть отчёты\nи статистику"];
+
+        uc_register_event    [shape=ellipse, label="Зарегистрироваться\nна мероприятие"];
+        uc_cancel_reg         [shape=ellipse, label="Отменить свою\nрегистрацию"];
+        uc_pay                [shape=ellipse, label="Оплатить участие"];
+        uc_view_my_regs       [shape=ellipse, label="Просмотреть свои\nрегистрации"];
+
+        uc_notify             [shape=ellipse, label="Получить email-\nуведомление", style=dashed];
+    }
+
+    actor_organizer   [shape=box, style=rounded, label="Организатор"];
+    actor_participant [shape=box, style=rounded, label="Участник"];
+    actor_system      [shape=box, style=rounded, label="Система\n(email-уведомления)"];
+
+    actor_organizer -> uc_register_account;
+    actor_organizer -> uc_login;
+    actor_organizer -> uc_create_event;
+    actor_organizer -> uc_edit_event;
+    actor_organizer -> uc_cancel_event;
+    actor_organizer -> uc_view_participants;
+    actor_organizer -> uc_view_reports;
+
+    actor_participant -> uc_register_account;
+    actor_participant -> uc_login;
+    actor_participant -> uc_browse;
+    actor_participant -> uc_search;
+    actor_participant -> uc_view_detail;
+    actor_participant -> uc_register_event;
+    actor_participant -> uc_pay;
+    actor_participant -> uc_cancel_reg;
+    actor_participant -> uc_view_my_regs;
+
+    uc_browse -> uc_search [style=dashed, label="«include»", dir=back];
+    uc_register_event -> uc_pay [style=dashed, label="«extend»\n(если платное)"];
+    uc_cancel_event -> uc_notify [style=dashed, label="«include»"];
+    uc_register_event -> uc_notify [style=dashed, label="«include»"];
+    uc_pay -> uc_notify [style=dashed, label="«include»"];
+
+    actor_system -> uc_notify [style=dotted];
+}
