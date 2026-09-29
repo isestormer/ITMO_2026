@@ -1,0 +1,35 @@
+digraph ClassDiagram {
+    rankdir=TB;
+    fontname="Arial";
+    node [shape=record, fontname="Arial", fontsize=10];
+    edge [fontname="Arial", fontsize=9];
+
+    User [label="{User (Пользователь)|+ id: int\l+ full_name: str\l+ email: str\l+ phone: str\l- password_hash: str\l+ role: str\l|+ check_password(pwd): bool\l+ register(): User\l}"];
+
+    Organizer [label="{Organizer (Организатор)||+ create_event(data): Event\l+ edit_event(event, data): Event\l+ cancel_event(event): void\l+ view_participants(event): list\l+ view_reports(): Report\l}"];
+
+    Participant [label="{Participant (Участник)||+ register_for_event(event): Registration\l+ cancel_registration(reg): void\l+ view_my_registrations(): list\l}"];
+
+    Event [label="{Event (Мероприятие)|+ id: int\l+ title: str\l+ description: str\l+ category: str\l+ location: str\l+ start_datetime: datetime\l+ end_datetime: datetime\l+ capacity: int\l+ price: float\l+ status: str\l|+ is_full(): bool\l+ registered_count(): int\l+ publish(): void\l+ cancel(): void\l}"];
+
+    Registration [label="{Registration (Регистрация)|+ id: int\l+ status: str\l+ registered_at: datetime\l|+ confirm(): void\l+ cancel(): void\l}"];
+
+    Payment [label="{Payment (Оплата)|+ id: int\l+ amount: float\l+ method: str\l+ status: str\l+ transaction_ref: str\l+ paid_at: datetime\l|+ process(): PaymentResult\l}"];
+
+    Notification [label="{Notification (Уведомление)|+ id: int\l+ type: str\l+ subject: str\l+ body: str\l+ status: str\l+ sent_at: datetime\l|+ send(): bool\l}"];
+
+    PaymentGateway [label="{«service»\nPaymentGateway (мок)||+ process_payment(amount): dict\l}"];
+    EmailService [label="{«service»\nEmailService||+ send_email(to, subject, body): bool\l}"];
+
+    User -> Organizer [dir=back, arrowtail=empty, style=solid, label="  наследование"];
+    User -> Participant [dir=back, arrowtail=empty, style=solid];
+
+    Organizer -> Event [label="  1..* создаёт\n  (organizer_id)", arrowhead=vee];
+    Participant -> Registration [label="  1..* оформляет\n  (participant_id)", arrowhead=vee];
+    Event -> Registration [label="  1..* принимает", arrowhead=vee, dir=back];
+    Registration -> Payment [label="  0..1 имеет", arrowhead=vee];
+    Payment -> PaymentGateway [style=dashed, label="  «use»"];
+    Notification -> EmailService [style=dashed, label="  «use»"];
+    User -> Notification [label="  0..* получает", arrowhead=vee];
+    Event -> Notification [label="  0..* порождает", arrowhead=vee, style=dashed];
+}

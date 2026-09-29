@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Отчёты{% endblock %}
+{% block content %}
+<h2 class="mb-4">Отчёты и статистика</h2>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card"><div class="value">{{ totals['total_events'] or 0 }}</div><div>Всего мероприятий</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="value">{{ totals['published_events'] or 0 }}</div><div>Опубликовано</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="value">{{ registrations_total }}</div><div>Регистраций всего</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="value">{{ revenue_total|round(2) }} ₽</div><div>Выручка</div></div></div>
+</div>
+
+<h4 class="mb-3">По мероприятиям</h4>
+<table class="table bg-white align-middle">
+    <thead>
+        <tr><th>Мероприятие</th><th>Статус</th><th>Заполненность</th><th>Выручка</th></tr>
+    </thead>
+    <tbody>
+    {% for e in per_event %}
+        <tr>
+            <td>{{ e['title'] }}</td>
+            <td><span class="badge bg-{{ {'draft':'secondary','published':'success','cancelled':'danger','completed':'dark'}[e['status']] }}">{{ e['status'] }}</span></td>
+            <td style="min-width: 220px;">
+                {% set pct = (e['registered'] / e['capacity'] * 100) if e['capacity'] else 0 %}
+                <div class="d-flex justify-content-between small mb-1"><span>{{ e['registered'] }}/{{ e['capacity'] }}</span><span>{{ pct|round(0) }}%</span></div>
+                <div class="progress" style="height:8px;"><div class="progress-bar bg-brand" style="width: {{ pct }}%; background-color:#2f5d8a;"></div></div>
+            </td>
+            <td>{{ e['revenue']|round(2) }} ₽</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

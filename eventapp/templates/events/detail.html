@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{{ event['title'] }}{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <span class="badge badge-category mb-2">{{ event['category'] }}</span>
+        {% if event['status'] == 'cancelled' %}<span class="badge bg-danger">Отменено</span>{% endif %}
+        <h2>{{ event['title'] }}</h2>
+        <p class="text-muted">🗓 {{ event['start_datetime'] }}{% if event['end_datetime'] %} — {{ event['end_datetime'] }}{% endif %}</p>
+        <p class="text-muted">📍 {{ event['location'] }}</p>
+        <p class="text-muted">Организатор: {{ organizer['full_name'] }}</p>
+        <hr>
+        <p>{{ event['description'] }}</p>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-3">
+            <p class="mb-1"><strong>Стоимость:</strong> {{ 'Бесплатно' if event['price'] == 0 else (event['price']|round(2)|string + ' ₽') }}</p>
+            <p class="mb-3"><strong>Мест занято:</strong> {{ registered_count }} / {{ event['capacity'] }}</p>
+
+            {% if event['status'] != 'published' %}
+                <p class="text-muted small">Регистрация недоступна (мероприятие не опубликовано, отменено или завершено).</p>
+            {% elif not current_user %}
+                <a href="{{ url_for('auth.login', next=request.path) }}" class="btn btn-brand w-100">Войти, чтобы зарегистрироваться</a>
+            {% elif current_user['role'] != 'participant' %}
+                <p class="text-muted small">Регистрация доступна только для участников.</p>
+            {% elif my_registration %}
+                <p class="text-success mb-2">Вы зарегистрированы (статус: {{ my_registration['status'] }}).</p>
+                {% if my_registration['status'] == 'pending' %}
+                    <a href="{{ url_for('payments.pay', registration_id=my_registration['id']) }}" class="btn btn-brand w-100">Перейти к оплате</a>
+                {% endif %}
+                <form method="post" action="{{ url_for('registrations.cancel', registration_id=my_registration['id']) }}" class="mt-2">
+                    <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('Отменить регистрацию?');">Отменить регистрацию</button>
+                </form>
+            {% elif registered_count >= event['capacity'] %}
+                <button class="btn btn-secondary w-100" disabled>Мест нет</button>
+            {% else %}
+                <form method="post" action="{{ url_for('registrations.register_for_event', event_id=event['id']) }}">
+                    <button type="submit" class="btn btn-brand w-100">Зарегистрироваться</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

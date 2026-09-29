@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Мои регистрации{% endblock %}
+{% block content %}
+<h2 class="mb-4">Мои регистрации</h2>
+
+{% if not rows %}
+    <p class="text-muted">У вас пока нет регистраций на мероприятия. <a href="{{ url_for('events.catalog') }}">Перейти в каталог</a></p>
+{% endif %}
+
+<table class="table bg-white align-middle">
+    <thead>
+        <tr><th>Мероприятие</th><th>Дата</th><th>Место</th><th>Статус</th><th>Оплата</th><th></th></tr>
+    </thead>
+    <tbody>
+    {% for r in rows %}
+        <tr>
+            <td>{{ r['title'] }}</td>
+            <td>{{ r['start_datetime'] }}</td>
+            <td>{{ r['location'] }}</td>
+            <td><span class="badge bg-{{ {'pending':'warning','confirmed':'success','cancelled':'danger'}[r['status']] }}">{{ r['status'] }}</span></td>
+            <td>
+                {% if r['price'] == 0 %}бесплатно
+                {% elif r['payment_status'] %}<span class="badge bg-{{ {'pending':'warning','paid':'success','failed':'danger','refunded':'secondary'}[r['payment_status']] }}">{{ r['payment_status'] }}</span>
+                {% endif %}
+            </td>
+            <td class="text-end">
+                {% if r['payment_status'] == 'pending' %}
+                    <a href="{{ url_for('payments.pay', registration_id=r['id']) }}" class="btn btn-sm btn-brand">Оплатить</a>
+                {% endif %}
+                {% if r['status'] != 'cancelled' %}
+                <form method="post" action="{{ url_for('registrations.cancel', registration_id=r['id']) }}" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Отменить регистрацию?');">Отменить</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Участники — {{ event['title'] }}{% endblock %}
+{% block content %}
+<h2 class="mb-1">Участники мероприятия</h2>
+<p class="text-muted mb-4">{{ event['title'] }}</p>
+
+{% if not rows %}
+    <p class="text-muted">Пока никто не зарегистрировался.</p>
+{% endif %}
+
+<table class="table bg-white align-middle">
+    <thead>
+        <tr>
+            <th>ФИО</th><th>Email</th><th>Телефон</th><th>Статус регистрации</th><th>Оплата</th><th>Дата регистрации</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for r in rows %}
+        <tr>
+            <td>{{ r['full_name'] }}</td>
+            <td>{{ r['email'] }}</td>
+            <td>{{ r['phone'] or '—' }}</td>
+            <td><span class="badge bg-{{ {'pending':'warning','confirmed':'success','cancelled':'danger'}[r['reg_status']] }}">{{ r['reg_status'] }}</span></td>
+            <td>{% if r['payment_status'] %}<span class="badge bg-{{ {'pending':'warning','paid':'success','failed':'danger','refunded':'secondary'}[r['payment_status']] }}">{{ r['payment_status'] }}</span> {{ r['amount'] }} ₽{% else %}бесплатно{% endif %}</td>
+            <td>{{ r['registered_at'] }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

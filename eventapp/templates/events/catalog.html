@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Каталог мероприятий{% endblock %}
+{% block content %}
+<h2 class="mb-4">Каталог мероприятий</h2>
+
+<form method="get" class="row g-2 mb-4">
+    <div class="col-md-6">
+        <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Поиск по названию или описанию…">
+    </div>
+    <div class="col-md-4">
+        <select name="category" class="form-select">
+            <option value="">Все категории</option>
+            {% for c in categories %}
+                <option value="{{ c }}" {% if c == category %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-brand w-100">Найти</button>
+    </div>
+</form>
+
+{% if not events %}
+    <p class="text-muted">Мероприятий по заданным критериям не найдено.</p>
+{% endif %}
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for e in events %}
+    <div class="col">
+        <div class="card event-card p-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="badge badge-category">{{ e['category'] }}</span>
+                <span class="text-muted small">{{ e['registered_count'] }}/{{ e['capacity'] }} мест</span>
+            </div>
+            <h5>{{ e['title'] }}</h5>
+            <p class="text-muted small mb-1">🗓 {{ e['start_datetime'] }}</p>
+            <p class="text-muted small mb-2">📍 {{ e['location'] }}</p>
+            <p class="mb-2">{{ e['description'][:110] }}{% if e['description']|length > 110 %}…{% endif %}</p>
+            <div class="d-flex justify-content-between align-items-center mt-auto">
+                <strong>{{ 'Бесплатно' if e['price'] == 0 else (e['price']|round(2)|string + ' ₽') }}</strong>
+                <a href="{{ url_for('events.detail', event_id=e['id']) }}" class="btn btn-sm btn-brand">Подробнее</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

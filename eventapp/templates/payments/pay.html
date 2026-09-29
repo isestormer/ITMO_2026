@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Оплата{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card p-4">
+            <h3 class="mb-3">Оплата участия</h3>
+            <p><strong>Мероприятие:</strong> {{ reg['event_title'] }}</p>
+            <p><strong>Дата:</strong> {{ reg['start_datetime'] }}</p>
+            <p><strong>К оплате:</strong> {{ reg['event_price'] }} ₽</p>
+
+            {% if payment and payment['status'] == 'failed' %}
+                <div class="alert alert-danger">Предыдущая попытка оплаты не удалась. Попробуйте ещё раз.</div>
+            {% endif %}
+
+            <form method="post">
+                <div class="mb-3">
+                    <label class="form-label">Номер карты (демо, любые цифры)</label>
+                    <input type="text" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19">
+                </div>
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Срок действия</label>
+                        <input type="text" class="form-control" placeholder="MM/YY">
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label">CVC</label>
+                        <input type="text" class="form-control" placeholder="123" maxlength="3">
+                    </div>
+                </div>
+                <p class="text-muted small">Это демонстрационная (мок) платёжная форма для дипломного проекта — реальные платёжные данные не запрашиваются и никуда не передаются.</p>
+                <button type="submit" class="btn btn-brand w-100">Оплатить {{ reg['event_price'] }} ₽</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
